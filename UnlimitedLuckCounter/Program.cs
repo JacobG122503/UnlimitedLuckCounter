@@ -1,7 +1,6 @@
 ﻿
 
 var typedCorrectly = false;
-
 var luckyNumber = 0;
 
 while (!typedCorrectly)
@@ -24,6 +23,9 @@ var maxNumber = 10;
 var level = 1;
 var guessesThisLevel = 0;
 
+var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+var lastMatchTime = stopwatch.Elapsed;
+
 Console.CursorVisible = false;
 Console.Clear();
 while (true)
@@ -31,16 +33,18 @@ while (true)
     Console.SetCursorPosition(0, 0);
     var guessedNumber = Random.Shared.Next(maxNumber + 1);
     guessesThisLevel++;
-    var printString = $"| Lucky Number: {luckyNumber} | Level: {level} | Range (0-{maxNumber}) | Level Guesses: {guessesThisLevel}|";
-    Console.WriteLine(printString);
-    for (var i = 0; i < printString.Length; i++) Console.Write("-");
-    Console.WriteLine();
-    Console.WriteLine($"Guessed Number: {guessedNumber}".PadRight(Console.WindowWidth));
+
+    var printString = $"| Lucky Number: {luckyNumber} | Level: {level} | Range (0-{maxNumber:N0}) | Level Guesses: {guessesThisLevel:N0} | Total Time: {stopwatch.Elapsed.TotalMinutes:F1}m | Since Last Match: {(stopwatch.Elapsed - lastMatchTime).TotalMinutes:F1}m |";
+    Console.WriteLine(printString.PadRight(Console.WindowWidth));
+    Console.WriteLine(new string('-', printString.Length).PadRight(Console.WindowWidth));
+    Console.WriteLine($"Guessed Number: {guessedNumber:N0}".PadRight(Console.WindowWidth));
+
     if (guessedNumber == luckyNumber)
     {
         maxNumber *= 10;
         level++;
         guessesThisLevel = 0;
+        lastMatchTime = stopwatch.Elapsed;
     }
     //Thread.Sleep(100);
 }
