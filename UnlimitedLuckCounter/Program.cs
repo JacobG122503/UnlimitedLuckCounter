@@ -49,6 +49,11 @@ while (!exitProgram)
     var stopwatch = Stopwatch.StartNew();
     var lastMatchTime = stopwatch.Elapsed;
 
+    var guessRateWindow = new Queue<(DateTime time, int count)>();
+    var lastRateUpdate = DateTime.Now;
+    var guessesAtLastUpdate = 0;
+    var currentGuessesPerSecond = 0.0;
+
     Console.CursorVisible = false;
     Console.Clear();
 
@@ -63,7 +68,42 @@ while (!exitProgram)
             var totalTime = stopwatch.Elapsed;
             var sinceLastMatch = totalTime - lastMatchTime;
 
-            var printString = $"| Lucky Number: {luckyNumber} | Level: {level} | Range: (0-{maxNumber:N0}) | Level Guesses: {guessesThisLevel:N0} | Total Time: {FormatTime(totalTime)} | Since Last Match: {FormatTime(sinceLastMatch)} |";
+            var luckPercentage = maxNumber > 0 ? (guessesThisLevel / (double)maxNumber) * 100 : 0;
+
+            var now = DateTime.Now;
+            if ((now - lastRateUpdate).TotalMilliseconds >= 500)
+            {
+                var guessesAdded = guessesThisLevel - guessesAtLastUpdate;
+                var secondsElapsed = (now - lastRateUpdate).TotalSeconds;
+
+                if (secondsElapsed > 0)
+                {
+                    var windowRate = guessesAdded / secondsElapsed;
+
+                    guessRateWindow.Enqueue((now, guessesThisLevel));
+                    while (guessRateWindow.Count > 5)
+                        guessRateWindow.Dequeue();
+
+                    if (guessRateWindow.Count >= 2)
+                    {
+                        var oldest = guessRateWindow.Peek();
+                        var totalGuessesInWindow = guessesThisLevel - oldest.count;
+                        var totalTimeInWindow = (now - oldest.time).TotalSeconds;
+
+                        if (totalTimeInWindow > 0)
+                            currentGuessesPerSecond = totalGuessesInWindow / totalTimeInWindow;
+                    }
+                    else
+                    {
+                        currentGuessesPerSecond = windowRate;
+                    }
+
+                    lastRateUpdate = now;
+                    guessesAtLastUpdate = guessesThisLevel;
+                }
+            }
+
+            var printString = $"| Lucky Number: {luckyNumber} | Level: {level} | Range: (0-{maxNumber:N0}) | Level Guesses: {guessesThisLevel:N0} | Luck: {luckPercentage:F2}% | {currentGuessesPerSecond:N0} guesses/s | Total Time: {FormatTime(totalTime)} | Since Last Match: {FormatTime(sinceLastMatch)} |";
             Console.WriteLine(printString.PadRight(Console.WindowWidth));
             Console.WriteLine(new string('-', printString.Length).PadRight(Console.WindowWidth));
             Console.WriteLine($"Guessed Number: {guessedNumber:N0}".PadRight(Console.WindowWidth));
@@ -76,6 +116,11 @@ while (!exitProgram)
                 level++;
                 guessesThisLevel = 0;
                 lastMatchTime = stopwatch.Elapsed;
+
+                guessRateWindow.Clear();
+                lastRateUpdate = DateTime.Now;
+                guessesAtLastUpdate = 0;
+                currentGuessesPerSecond = 0;
             }
 
             if (Console.KeyAvailable)
