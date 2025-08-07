@@ -15,38 +15,55 @@ public class HighscoreManager
     {
         if (!File.Exists(_filePath)) return;
 
+        _levelTimes.Clear();
+        
         var lines = File.ReadAllLines(_filePath);
         foreach (var line in lines.Skip(1))
         {
             if (!line.StartsWith("[")) continue;
 
-            var firstBracketEnd = line.IndexOf(']');
-            var timestampStr = line.Substring(1, firstBracketEnd - 1);
-
-            var secondBracketStart = line.IndexOf('[', firstBracketEnd + 1);
-            var secondBracketEnd = line.IndexOf(']', secondBracketStart + 1);
-            var rangeStr = line.Substring(secondBracketStart + 1, secondBracketEnd - secondBracketStart - 1).Replace(",", "");
-
-            var rest = line.Substring(secondBracketEnd + 1).Trim();
-
-            var levelStart = rest.IndexOf("Level:");
-            var dashIndex = rest.IndexOf('-');
-            var parenIndex = rest.LastIndexOf('(');
-
-            if (levelStart == -1 || dashIndex == -1 || parenIndex == -1) continue;
-
-            var levelStr = rest.Substring(levelStart + 6, dashIndex - levelStart - 6).Trim();
-            var rawTimeStr = rest.Substring(parenIndex + 1).Trim(')', ' ');
-
-            if (DateTime.TryParse(timestampStr, out var timestamp) &&
-                int.TryParse(rangeStr, out var range) &&
-                int.TryParse(levelStr, out var level) &&
-                double.TryParse(rawTimeStr, out var rawTime))
+            try
             {
-                if (!_levelTimes.ContainsKey(level) || rawTime < _levelTimes[level].time)
+                var firstBracketEnd = line.IndexOf(']');
+                if (firstBracketEnd == -1) continue;
+                var timestampStr = line.Substring(1, firstBracketEnd - 1);
+                
+                var levelText = "Level: ";
+                var levelIndex = line.IndexOf(levelText);
+                if (levelIndex == -1) continue;
+                
+                var dashIndex = line.IndexOf('-', levelIndex);
+                if (dashIndex == -1) continue;
+                
+                var levelStr = line.Substring(levelIndex + levelText.Length, dashIndex - (levelIndex + levelText.Length)).Trim();
+                
+                var parenIndex = line.LastIndexOf('(');
+                if (parenIndex == -1) continue;
+                
+                var rawTimeStr = line.Substring(parenIndex + 1).Trim(')', ' ');
+                
+                var rangeStartIndex = line.LastIndexOf('[', parenIndex);
+                if (rangeStartIndex == -1) continue;
+                
+                var rangeEndIndex = line.IndexOf(']', rangeStartIndex);
+                if (rangeEndIndex == -1) continue;
+                
+                var rangeStr = line.Substring(rangeStartIndex + 1, rangeEndIndex - rangeStartIndex - 1).Replace(",", "");
+                
+                if (DateTime.TryParse(timestampStr, out var timestamp) &&
+                    int.TryParse(levelStr, out var level) &&
+                    int.TryParse(rangeStr, out var range) &&
+                    double.TryParse(rawTimeStr, out var rawTime))
                 {
-                    _levelTimes[level] = (timestamp, rawTime, range);
+                    if (!_levelTimes.ContainsKey(level) || rawTime < _levelTimes[level].time)
+                    {
+                        _levelTimes[level] = (timestamp, rawTime, range);
+                    }
                 }
+            }
+            catch
+            {
+                continue;
             }
         }
     }
@@ -56,29 +73,58 @@ public class HighscoreManager
         if (!_levelTimes.ContainsKey(level) || time < _levelTimes[level].time)
         {
             _levelTimes[level] = (DateTime.Now, time, range);
-            SaveHighscores();
+            SaveHighscore(level);
             return true;
         }
 
         return false;
     }
 
-    private void SaveHighscores()
+    private void SaveHighscore(int level)
     {
-        using var writer = new StreamWriter(_filePath, false);
-        writer.WriteLine("HIGHSCORES");
+        if (!_levelTimes.ContainsKey(level))
+            return;
+            
+        var entry = _levelTimes[level];
+        var formattedTime = FormatTime(entry.time);
+        var rangeWithCommas = entry.range.ToString("N0", CultureInfo.InvariantCulture);
 
-        foreach (var entry in _levelTimes.OrderBy(e => e.Key))
+        var lines = File.Exists(_filePath) ? File.ReadAllLines(_filePath).ToList() : new List<string>();
+        
+        if (lines.Count == 0 || !lines[0].Equals("HIGHSCORES"))
         {
-            var formattedTime = FormatTime(entry.Value.time);
-            var rangeWithCommas = entry.Value.range.ToString("N0", CultureInfo.InvariantCulture);
-            writer.WriteLine($"[{entry.Value.timestamp:G}] [{rangeWithCommas}] Level: {entry.Key} - {formattedTime} ({entry.Value.time})");
+            lines.Insert(0, "HIGHSCORES");
         }
+        
+        var levelPattern = $"Level: {level} -";
+        var existingLineIndex = -1;
+        
+        for (int i = 0; i < lines.Count; i++)
+        {
+            if (lines[i].Contains(levelPattern))
+            {
+                existingLineIndex = i;
+                break;
+            }
+        }
+        
+        var newLine = $"[{entry.timestamp:MM/dd/yyyy hh:mm:ss tt}] Level: {level} - {formattedTime} [{rangeWithCommas}] ({entry.time})";
+        
+        if (existingLineIndex != -1)
+        {
+            lines[existingLineIndex] = newLine;
+        }
+        else 
+        {
+            lines.Add(newLine);
+        }
+
+        File.WriteAllLines(_filePath, lines);
     }
 
-    private string FormatTime(double minutes)
+    private string FormatTime(double seconds)
     {
-        var ts = TimeSpan.FromMinutes(minutes);
+        var ts = TimeSpan.FromSeconds(seconds);
 
         var parts = new List<string>();
         if (ts.Hours > 0) parts.Add($"{ts.Hours}h");

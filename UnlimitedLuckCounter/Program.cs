@@ -48,8 +48,7 @@ while (true)
 
     if (guessedNumber == luckyNumber)
     {
-        var levelTime = totalTime.TotalMinutes - lastMatchTime.TotalMinutes;
-        highscoreManager.TryUpdateHighscore(level, levelTime, maxNumber);
+        highscoreManager.TryUpdateHighscore(level, sinceLastMatch.TotalSeconds, maxNumber);
 
         maxNumber *= 10;
         level++;
@@ -59,7 +58,6 @@ while (true)
     //Thread.Sleep(100);
 }
 
-string FormatTime(TimeSpan timeSpan)
-{
-    return $"{(int)timeSpan.TotalMinutes}m {timeSpan.Seconds}s";
-}
+string FormatTime(TimeSpan timeSpan) => timeSpan.Hours > 0
+    ? $"{timeSpan.Hours}h {timeSpan.Minutes}m {timeSpan.Seconds}s"
+    : $"{timeSpan.Minutes}m {timeSpan.Seconds}s";
