@@ -1,61 +1,101 @@
 ﻿using System.Diagnostics;
 
+Console.WriteLine("UNLIMITED LUCK COUNTER");
+Console.WriteLine("=====================");
 
-var typedCorrectly = false;
-var luckyNumber = 0;
-
-while (!typedCorrectly)
+var exitProgram = false;
+while (!exitProgram)
 {
-    Console.Write("Enter a lucky number 0-9 (inclusive): ");
-    var input = Console.ReadLine();
+    Console.Clear();
+    Console.WriteLine("UNLIMITED LUCK COUNTER");
+    Console.WriteLine("=====================");
+    Console.WriteLine("1. Start Game");
+    Console.WriteLine("2. Exit");
+    Console.Write("Select option (1 or 2): ");
 
-    if (int.TryParse(input, out var number) && number >= 0 && number <= 9)
+    var modeInput = Console.ReadLine();
+
+    if (modeInput == "2")
     {
-        luckyNumber = number;
-        typedCorrectly = true;
+        exitProgram = true;
+        continue;
     }
-    else
+
+    var typedCorrectly = false;
+    var luckyNumber = 0;
+
+    while (!typedCorrectly)
     {
-        Console.WriteLine("That's not a valid number, try again.");
+        Console.Write("Enter a lucky number 0-9 (inclusive): ");
+        var input = Console.ReadLine();
+
+        if (int.TryParse(input, out var number) && number >= 0 && number <= 9)
+        {
+            luckyNumber = number;
+            typedCorrectly = true;
+        }
+        else
+        {
+            Console.WriteLine("That's not a valid number, try again.");
+        }
     }
-}
 
-var highscoreManager = new HighscoreManager(Path.Combine(Directory.GetCurrentDirectory(), "../../../highscores.txt"));
+    var highscoreManager = new HighscoreManager(Path.Combine(Directory.GetCurrentDirectory(), "../../../highscores.txt"));
 
-var maxNumber = 10;
-var level = 1;
-var guessesThisLevel = 0;
+    var maxNumber = 10;
+    var level = 1;
+    var guessesThisLevel = 0;
 
-var stopwatch = Stopwatch.StartNew();
-var lastMatchTime = stopwatch.Elapsed;
+    var stopwatch = Stopwatch.StartNew();
+    var lastMatchTime = stopwatch.Elapsed;
 
-Console.CursorVisible = false;
-Console.Clear();
+    Console.CursorVisible = false;
+    Console.Clear();
 
-while (true)
-{
-    Console.SetCursorPosition(0, 0);
-    var guessedNumber = Random.Shared.Next(maxNumber + 1);
-    guessesThisLevel++;
-
-    var totalTime = stopwatch.Elapsed;
-    var sinceLastMatch = totalTime - lastMatchTime;
-
-    var printString = $"| Lucky Number: {luckyNumber} | Level: {level} | Range: (0-{maxNumber:N0}) | Level Guesses: {guessesThisLevel:N0} | Total Time: {FormatTime(totalTime)} | Since Last Match: {FormatTime(sinceLastMatch)} |";
-    Console.WriteLine(printString.PadRight(Console.WindowWidth));
-    Console.WriteLine(new string('-', printString.Length).PadRight(Console.WindowWidth));
-    Console.WriteLine($"Guessed Number: {guessedNumber:N0}".PadRight(Console.WindowWidth));
-
-    if (guessedNumber == luckyNumber)
+    try
     {
-        highscoreManager.TryUpdateHighscore(level, guessesThisLevel, sinceLastMatch.TotalSeconds, maxNumber);
+        while (true)
+        {
+            Console.SetCursorPosition(0, 0);
+            var guessedNumber = Random.Shared.Next(maxNumber + 1);
+            guessesThisLevel++;
 
-        maxNumber *= 10;
-        level++;
-        guessesThisLevel = 0;
-        lastMatchTime = stopwatch.Elapsed;
+            var totalTime = stopwatch.Elapsed;
+            var sinceLastMatch = totalTime - lastMatchTime;
+
+            var printString = $"| Lucky Number: {luckyNumber} | Level: {level} | Range: (0-{maxNumber:N0}) | Level Guesses: {guessesThisLevel:N0} | Total Time: {FormatTime(totalTime)} | Since Last Match: {FormatTime(sinceLastMatch)} |";
+            Console.WriteLine(printString.PadRight(Console.WindowWidth));
+            Console.WriteLine(new string('-', printString.Length).PadRight(Console.WindowWidth));
+            Console.WriteLine($"Guessed Number: {guessedNumber:N0}".PadRight(Console.WindowWidth));
+
+            if (guessedNumber == luckyNumber)
+            {
+                highscoreManager.TryUpdateHighscore(level, guessesThisLevel, sinceLastMatch.TotalSeconds, maxNumber);
+
+                maxNumber *= 10;
+                level++;
+                guessesThisLevel = 0;
+                lastMatchTime = stopwatch.Elapsed;
+            }
+
+            if (Console.KeyAvailable)
+            {
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    Console.WriteLine("\nGame interrupted. Press any key to return to menu...");
+                    Console.ReadKey(true);
+                    break;
+                }
+            }
+        }
     }
-    //Thread.Sleep(100);
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\nAn error occurred: {ex.Message}");
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
+    }
 }
 
 string FormatTime(TimeSpan timeSpan) => timeSpan.Hours > 0

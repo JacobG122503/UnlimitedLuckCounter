@@ -24,37 +24,24 @@ public class HighscoreManager
 
             try
             {
-                var firstBracketEnd = line.IndexOf(']');
-                if (firstBracketEnd == -1) continue;
-                var timestampStr = line.Substring(1, firstBracketEnd - 1);
+                var parts = line.Split('|').Select(p => p.Trim()).ToArray();
+                if (parts.Length < 5) continue;
 
-                var levelText = "Level: ";
-                var levelIndex = line.IndexOf(levelText);
-                if (levelIndex == -1) continue;
+                var timestampPart = parts[0];
+                var timestampStr = timestampPart.Trim('[', ']');
 
-                var dashIndex = line.IndexOf('-', levelIndex);
-                if (dashIndex == -1) continue;
+                var levelPart = parts[1];
+                if (!levelPart.StartsWith("Level:")) continue;
+                var levelStr = levelPart.Substring(6).Trim();
 
-                var levelStr = line.Substring(levelIndex + levelText.Length, dashIndex - (levelIndex + levelText.Length)).Trim();
+                var guessesPart = parts[2];
+                if (!guessesPart.StartsWith("Guesses:")) continue;
+                var guessesStr = guessesPart.Substring(8).Trim().Replace(",", "");
 
-                var guessesText = "Guesses: ";
-                var guessesStartIndex = line.IndexOf(guessesText, dashIndex);
-                if (guessesStartIndex == -1) continue;
+                var rangePart = parts[3];
+                if (!rangePart.StartsWith("Range:")) continue;
+                var rangeStr = rangePart.Substring(6).Trim().Replace(",", "");
 
-                var pipeIndex = line.IndexOf('|', guessesStartIndex);
-                if (pipeIndex == -1) continue;
-
-                var guessesStr = line.Substring(guessesStartIndex + guessesText.Length, pipeIndex - (guessesStartIndex + guessesText.Length)).Trim().Replace(",", "");
-
-                var rangeStartIndex = line.IndexOf('[', pipeIndex);
-                if (rangeStartIndex == -1) continue;
-
-                var rangeEndIndex = line.IndexOf(']', rangeStartIndex);
-                if (rangeEndIndex == -1) continue;
-
-                var rangeStr = line.Substring(rangeStartIndex + 1, rangeEndIndex - rangeStartIndex - 1).Replace(",", "");
-
-                var formattedTimeStr = line.Substring(rangeEndIndex + 1).Trim();
                 double time = 0;
 
                 if (DateTime.TryParse(timestampStr, out var timestamp) &&
@@ -97,6 +84,9 @@ public class HighscoreManager
         var rangeWithCommas = entry.range.ToString("N0", CultureInfo.InvariantCulture);
         var guessesWithCommas = entry.guesses.ToString("N0", CultureInfo.InvariantCulture);
 
+        var luckFactor = (double)entry.guesses / entry.range * 100;
+        var luckFactorStr = luckFactor.ToString("F1", CultureInfo.InvariantCulture);
+
         var lines = File.Exists(_filePath) ? File.ReadAllLines(_filePath).ToList() : new List<string>();
 
         if (lines.Count == 0 || !lines[0].Equals("HIGHSCORES"))
@@ -104,19 +94,18 @@ public class HighscoreManager
             lines.Insert(0, "HIGHSCORES");
         }
 
-        var levelPattern = $"Level: {level} -";
         var existingLineIndex = -1;
 
         for (var i = 0; i < lines.Count; i++)
         {
-            if (lines[i].Contains(levelPattern))
+            if (lines[i].Contains($"| Level: {level} |"))
             {
                 existingLineIndex = i;
                 break;
             }
         }
 
-        var newLine = $"[{entry.timestamp:MM/dd/yyyy hh:mm:ss tt}] Level: {level} - Guesses: {guessesWithCommas} | [{rangeWithCommas}] {formattedTime}";
+        var newLine = $"[{entry.timestamp:MM/dd/yyyy hh:mm:ss tt}] | Level: {level} | Guesses: {guessesWithCommas} | Range: {rangeWithCommas} | Luck: {luckFactorStr}% | Time: {formattedTime}";
 
         if (existingLineIndex != -1)
         {
