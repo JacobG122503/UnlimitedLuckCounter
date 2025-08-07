@@ -48,7 +48,7 @@ while (true)
 
     if (guessedNumber == luckyNumber)
     {
-        highscoreManager.TryUpdateHighscore(level, sinceLastMatch.TotalSeconds, maxNumber);
+        highscoreManager.TryUpdateHighscore(level, guessesThisLevel, sinceLastMatch.TotalSeconds, maxNumber);
 
         maxNumber *= 10;
         level++;
