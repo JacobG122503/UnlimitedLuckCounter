@@ -1,8 +1,8 @@
 HIGHSCORES
 [08/07/2025 09:19:54 AM] | Level: 1 | Guesses: 1 | Range: 10 | Luck: 10.0% | Time: 2ms
 [08/07/2025 01:11:52 PM] | Level: 2 | Guesses: 1 | Range: 100 | Luck: 1.0% | Time: 0ms
-[08/07/2025 01:11:52 PM] | Level: 3 | Guesses: 229 | Range: 1,000 | Luck: 22.9% | Time: 40ms
-[08/07/2025 09:19:54 AM] | Level: 4 | Guesses: 64 | Range: 10,000 | Luck: 0.64% | Time: 9ms
+[08/07/2025 02:05:06 PM] | Level: 3 | Guesses: 15 | Range: 1,000 | Luck: 1.5% | Time: 5ms
+[08/07/2025 02:05:49 PM] | Level: 4 | Guesses: 28 | Range: 10,000 | Luck: 0.3% | Time: 9ms
 [08/07/2025 01:18:17 PM] | Level: 5 | Guesses: 290 | Range: 100,000 | Luck: 0.3% | Time: 59ms
 [08/07/2025 09:24:05 AM] | Level: 6 | Guesses: 10,079 | Range: 1,000,000 | Luck: 1.0% | Time: 1s 742ms
 [08/07/2025 10:47:38 AM] | Level: 7 | Guesses: 27,630,039 | Range: 10,000,000 | Luck: 276.3% | Time: 1h 23m 32s 855ms
