@@ -40,9 +40,12 @@ while (!exitProgram)
         }
     }
 
-    var highscoreManager = new HighscoreManager(Path.Combine(Directory.GetCurrentDirectory(), "../../../highscores.txt"));
+    //Windows
+    //var highscoreManager = new HighscoreManager(Path.Combine(Directory.GetCurrentDirectory(), "../../../highscores.txt"));
+    //Mac
+    var highscoreManager = new HighscoreManager(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../highscores.txt")));
 
-    var maxNumber = 10;
+    var maxNumber = 10; //9 is the max level at the moment due to int max
     var level = 1;
     var guessesThisLevel = 0;
 
