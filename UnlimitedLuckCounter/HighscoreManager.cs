@@ -3,7 +3,7 @@
 public class HighscoreManager
 {
     private readonly string _filePath;
-    private readonly Dictionary<int, (DateTime timestamp, int guesses, double time, int range)> _levelStats = new();
+    private readonly Dictionary<int, (DateTime timestamp, int guesses, double time, long range)> _levelStats = new();
 
     public HighscoreManager(string filePath)
     {
@@ -62,7 +62,7 @@ public class HighscoreManager
         }
     }
 
-    public bool TryUpdateHighscore(int level, int guesses, double time, int range)
+    public bool TryUpdateHighscore(int level, int guesses, double time, long range)
     {
         if (!_levelStats.ContainsKey(level) || guesses < _levelStats[level].guesses)
         {

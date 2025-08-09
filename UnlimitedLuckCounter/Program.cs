@@ -45,7 +45,7 @@ while (!exitProgram)
     //Mac
     var highscoreManager = new HighscoreManager(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../highscores.txt")));
 
-    var maxNumber = 10; //9 is the max level at the moment due to int max
+    long maxNumber = 10; //9 is the max level at the moment due to int max
     var level = 1;
     var guessesThisLevel = 0;
 
@@ -65,7 +65,7 @@ while (!exitProgram)
         while (true)
         {
             Console.SetCursorPosition(0, 0);
-            var guessedNumber = Random.Shared.Next(maxNumber + 1);
+            var guessedNumber = Random.Shared.NextInt64(maxNumber + 1);
             guessesThisLevel++;
 
             var totalTime = stopwatch.Elapsed;
